@@ -1,10 +1,11 @@
-import os
-import sys
+import os;
+import sys;
 
-import json
-import numpy as np
-import tensorflow as tf
-from tensorflow.contrib import rnn
+import json;
+import numpy as np;
+import tensorflow as tf;
+import tensorflow.compat.v1.nn as tfv1;
+from util.util import plot_stereo_spectrogram;
 
 n_input = 3;
 learning_rate = 0.001;
@@ -13,12 +14,14 @@ batch_size = 128;
 n_hidden = 512;
 n_output = 5;
 
+"""
 weights = {
-    'out': tf.Variable(tf.random_normal([n_hidden, n_output]));
+    'out': tf.Variable(tf.zeros([n_hidden, n_output]))
 }
 biases = {
-    'out': tf.Variable(tf.random_normal([n_output]))
+    'out': tf.Variable(tf.zeros([n_output]))
 }
+"""
 
 
 def RNN(x, weights, biases):
@@ -29,7 +32,7 @@ def RNN(x, weights, biases):
     x = tf.split(x, n_input, 1);
 
     # 2-layer LSTM with n_hidden units
-    rnn_cell = rnn.MultiRNNCell([rnn.BasicLSTMCell(n_hidden), rnn.BasicLSTMCell(n_hidden)]);
+    rnn_cell = tfv1.rnn_cell.MultiRNNCell([tfv1.rnn_cell.BasicLSTMCell(n_hidden), tfv1.rnn_cell.BasicLSTMCell(n_hidden)]);
 
     # generate prediction
     outputs, states = rnn.static_rnn(rnn_cell, x, dtype=tf.float32);
@@ -39,7 +42,7 @@ def RNN(x, weights, biases):
 
 
 def main():
-    print("Beginning...");
+    plot_stereo_spectrogram(os.getcwd() + '/test.wav');
 
 
 if __name__ == '__main__':
