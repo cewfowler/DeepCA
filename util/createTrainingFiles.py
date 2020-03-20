@@ -9,6 +9,7 @@ def writeLabeledData(data, file_to_write):
 
 def extractData(file_to_read, file_to_write):
     data = [];
+    ts = [];
     f = open(file_to_read, 'r'); #,newline='\r');
     reader = csv.reader(f, delimiter='\t');
 
@@ -28,10 +29,16 @@ def extractData(file_to_read, file_to_write):
             end = float(row[0][int(ts_len/2):]);
             diff = round(end - begin, 2);
 
-        data.append({"Duration": diff, "Text": row[2]});
+        ts.append([begin end]);
+        data.append({"Duration": diff, "Text": row[2], "Begin": begin, "End": end});
 
     f.close();
-    writeLabeledData(data, file_to_write)
+    writeLabeledData(data, file_to_write);
+    return ts;
+
+def splice_wav(file_to_splice, ts):
+    print(file_to_splice);
+    print(ts[0]);
 
 def main():
     try:

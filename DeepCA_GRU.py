@@ -31,8 +31,8 @@ def RNN(x, weights, biases):
     # Generate a n_input-element sequence of inputs
     x = tf.split(x, n_input, 1);
 
-    # 2-layer LSTM with n_hidden units
-    rnn_cell = tfv1.rnn_cell.MultiRNNCell([tfv1.rnn_cell.BasicLSTMCell(n_hidden), tfv1.rnn_cell.BasicLSTMCell(n_hidden)]);
+    # 2-layer GRU with n_hidden units
+    rnn_cell = tfv1.rnn_cell.MultiRNNCell([tfv1.rnn_cell.GRUCell(n_hidden), tfv1.rnn_cell.GRUCell(n_hidden)]);
 
     # generate prediction
     outputs, states = rnn.static_rnn(rnn_cell, x, dtype=tf.float32);
@@ -42,7 +42,8 @@ def RNN(x, weights, biases):
 
 
 def main():
-    plot_stereo_spectrogram(os.getcwd() + '/test.wav');
+    #plot_stereo_spectrogram(os.getcwd() + '/test.wav');
+    print('Main');
 
 
 if __name__ == '__main__':
