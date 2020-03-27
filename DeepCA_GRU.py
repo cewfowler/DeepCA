@@ -1,3 +1,7 @@
+# This model was created referencing DeepSpeech 1 and 2 (papers can be found at
+# https://arxiv.org/abs/1412.5567 and https://arxiv.org/abs/1512.02595). The
+# code can be found at https://github.com/mozilla/DeepSpeech.
+
 import os;
 import sys;
 
@@ -31,10 +35,10 @@ biases = {
 """
 
 # DeepSpeech implementation referenced
-# First 3 layers are non-recurrent layers with relu activation
-# h(t, l) = g( W(l) * h(t, l-1) + b(l) ), W = weights matrix, b = bias matrix
-# g(z) = min{ max{0,z}, relu_clip } is clipped recitified-linear (ReLu)
-#        activation function
+# Dense layers with relu activation
+# h(t, l) = g( W(l) * h(t, l-1) + b(l) ), W = weights matrix, b = bias matrix,
+#   g(z) = min{ max{0,z}, relu_clip } is clipped recitified-linear (ReLu)
+#          activation function
 def dense(name, x, units, dropout_rate=None):
     with tfv1.variable_scope(name):
         bias = tfv1.get_variable(name='bias', \
@@ -49,7 +53,7 @@ def dense(name, x, units, dropout_rate=None):
         output = tf.minimum(tf.nn.relu(output), relu_clip);
 
 
-# Layers 4 and 5 are GRU layers
+# GRU layers
 def gru_impl(name, x, units, seq_length, prev_state, reuse):
     with tfv1.variable_scope(name):
         # GRU cell with n_hidden units
@@ -68,12 +72,14 @@ def gru_impl(name, x, units, seq_length, prev_state, reuse):
 def create_model(batch_x, seq_length, dropout, reuse=False, batch_size=None, prev_state=None):
     layers = {};
 
+    # First 3 layers (Dense with ReLu activation)
     layers['layer_1'] = layer_1 = dense('layer_1', batch_x, n_hidden[0], dropout_rate=dropout[0]);
     layers['layer_2'] = layer_2 = dense('layer_2', layer_1, n_hidden[1], dropout_rate=dropout[1]);
     layers['layer_3'] = layer_3 = dense('layer_3', layer_2, n_hidden[2], dropout_rate=dropout[2]);
 
     layer_3 = tf.reshape(layer_3, [-1, batch_size, n_hidden[3]])
 
+    # Next 2 layers (GRU)
     output_1, out_state_1 = gru_impl('layer_4', layer_3, n_hidden[3], seq_length, prev_state[0], reuse);
     layers['layer_4'] = output_1;
     layers['gru_out_state_1'] = out_state_1;
