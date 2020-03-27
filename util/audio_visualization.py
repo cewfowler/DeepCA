@@ -1,5 +1,20 @@
 import matplotlib.pyplot as plt;
-from scipy.io import wavfile
+import numpy as np;
+from scipy.io import wavfile;
+
+
+def visualize_t_domain(file):
+    sample_rate, data = wavfile.read(file);
+
+    plt.figure(figsize=(10, 5));
+
+    plt.title('Raw wave of ' + file);
+    plt.xlabel('Time');
+    plt.ylabel('Amplitude');
+
+    plt.plot(np.linspace(0, len(data)/sample_rate, len(data)), data);
+    plt.show();
+
 
 def plot_stereo_spectrogram(wav_file):
     try:
