@@ -6,3 +6,13 @@ Conversation Analysis typically involves long, natural conversations which are i
 ## Models ##
 #### GRU Model ####
 - The GRU Model consists of 3 non-recurrent layers and 2 GRU layers.
+
+
+## Visualizing Models ##
+- In order to visualize the models, the following dependencies must be installed first:
+```
+pip3 install keras
+pip3 install ann_visualizer
+pip install graphviz
+pip install h5py
+```
