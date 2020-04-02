@@ -16,7 +16,7 @@ def writeLabeledData(data, file_to_write):
 def extractData(file_to_read, file_to_write):
     data = [];
     ts = [];
-    f = open(file_to_read, 'r'); #,newline='\r');
+    f = open(file_to_read, 'r');
     reader = csv.reader(f, delimiter='\t');
 
     # Read file and get data
@@ -44,6 +44,7 @@ def extractData(file_to_read, file_to_write):
 
 
 # Splices a .wav file into smaller wav files using timestamps
+# TODO: should spliced files be resampled to 8k?
 def splice_wav(dir_to_read, dir_to_write, file_to_splice, ts):
     i = 1;
     base_name = os.path.splitext(file_to_splice)[0];
@@ -56,8 +57,9 @@ def splice_wav(dir_to_read, dir_to_write, file_to_splice, ts):
         print('Writing ' + dir_to_write + '/' + base_name + '_' + str(i) + '.wav');
 
         newAudio = audio[t1:t2];
-        newAudio.export(dir_to_write + '/' + base_name + '_' + str(i) + '.wav', format="wav");
+        #newAudio = newAudio.set_frame_rate(8000);
 
+        newAudio.export(dir_to_write + '/' + base_name + '_' + str(i) + '.wav', format="wav");
         i = i + 1;
 
 
