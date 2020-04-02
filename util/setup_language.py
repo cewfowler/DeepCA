@@ -25,12 +25,14 @@ def getCharactersFromTranscript(transcript):
 
 
 # Encode phonemes stored in p_file
+# Returns y (transformed labels) and classes (list of classes/phonemes)
 def encodePhonemes(p_file, verbose=False):
     f = open(p_file, 'r');
     p_list = f.read().splitlines()[1:-1];
 
     le = LabelEncoder();
-    le.fit(p_list)
+    y = le.fit_transform(p_list);
+    classes = list(le.classes_);
 
     if (verbose):
         print("Phonemes:")
@@ -42,7 +44,7 @@ def encodePhonemes(p_file, verbose=False):
         print(list(le.classes_));
 
     f.close();
-    return le;
+    return y, classes;
 
 
 
