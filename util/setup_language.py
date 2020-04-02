@@ -24,17 +24,25 @@ def getCharactersFromTranscript(transcript):
     return sorted(chars_list);
 
 
-def encodePhonemes(p_file):
-    #le = LabelEncoder();
+# Encode phonemes stored in p_file
+def encodePhonemes(p_file, verbose=False):
     f = open(p_file, 'r');
-    p_list = f.readlines();
-    p_list = p_list[1:-1];
-    
-    print("Phonemes:")
-    for p in p_list:
-        print("This one: " + p)
+    p_list = f.read().splitlines()[1:-1];
+
+    le = LabelEncoder();
+    le.fit(p_list)
+
+    if (verbose):
+        print("Phonemes:")
+        i = 1;
+        for p in p_list:
+            print(str(i) + ": " + p);
+            i = i + 1;
+
+        print(list(le.classes_));
 
     f.close();
+    return le;
 
 
 
