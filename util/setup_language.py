@@ -2,6 +2,8 @@ import csv;
 import json;
 import argparse;
 
+
+# Returns all unique characters found in given input file
 def getCharactersFromTranscript(transcript):
     f = open(transcript, 'r');
     reader = csv.reader(f, delimiter='\t');
@@ -13,16 +15,16 @@ def getCharactersFromTranscript(transcript):
         for c in str:
             try:
                 chars_list.index(c);
-                #print("Found " + c);
             except:
                 chars_list.append(c);
-                #print("Did not find " + c + ". Adding to list.")
 
     f.close();
 
     return sorted(chars_list);
 
 
+# Takes in transcript file path
+# Calls getCharactersFromTranscript and prints out all the unique, sorted chars
 def main():
     parser = argparse.ArgumentParser(description="""Get unique characters from a
                                         transcript file""");
