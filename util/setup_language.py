@@ -1,6 +1,7 @@
 import csv;
 import json;
 import argparse;
+from sklearn.preprocessing import LabelEncoder;
 
 
 # Returns all unique characters found in given input file
@@ -21,6 +22,20 @@ def getCharactersFromTranscript(transcript):
     f.close();
 
     return sorted(chars_list);
+
+
+def encodePhonemes(p_file):
+    #le = LabelEncoder();
+    f = open(p_file, 'r');
+    p_list = f.readlines();
+    p_list = p_list[1:-1];
+    
+    print("Phonemes:")
+    for p in p_list:
+        print("This one: " + p)
+
+    f.close();
+
 
 
 # Takes in transcript file path
