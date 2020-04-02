@@ -4,11 +4,15 @@ import json;
 import argparse;
 from pydub import AudioSegment;
 
+
+# Write labeled data to a file
 def writeLabeledData(data, file_to_write):
     f = open(file_to_write, 'w+');
     json.dump(data, f);
     f.close()
 
+
+# Extract data from given TRN and store as new file
 def extractData(file_to_read, file_to_write):
     data = [];
     ts = [];
@@ -38,6 +42,7 @@ def extractData(file_to_read, file_to_write):
     writeLabeledData(data, file_to_write);
     return ts;
 
+
 # Splices a .wav file into smaller wav files using timestamps
 def splice_wav(dir_to_read, dir_to_write, file_to_splice, ts):
     i = 1;
@@ -56,6 +61,10 @@ def splice_wav(dir_to_read, dir_to_write, file_to_splice, ts):
         i = i + 1;
 
 
+# Takes in TRN, data, audio, and spliced directories as arguments.
+# Goes through a directory of TRN files and extracts data and timestamps.
+# Then goes through a directory of corresponding .wav files and splices them
+# into smaller files according to the timestamps.
 def main():
     parser = argparse.ArgumentParser(description="""Splice wav file into smaller
         files based on time stamps found in a TRN file. Please note that audio files
