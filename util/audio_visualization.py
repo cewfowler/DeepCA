@@ -1,10 +1,13 @@
 import matplotlib.pyplot as plt;
 import numpy as np;
-from scipy.io import wavfile;
+import librosa;
+import librosa.display as display
+from .feeding import calculate_mfccs
 
 
+# Visualize time domain of input audio file
 def visualize_t_domain(file):
-    sample_rate, data = wavfile.read(file);
+    data, sr = wavfile.read(file);
 
     plt.figure(figsize=(10, 5));
 
@@ -12,42 +15,36 @@ def visualize_t_domain(file):
     plt.xlabel('Time');
     plt.ylabel('Amplitude');
 
-    plt.plot(np.linspace(0, len(data)/sample_rate, len(data)), data);
+    plt.plot(np.linspace(0, len(data)/sr, len(data)), data);
     plt.show();
 
 
-def plot_stereo_spectrogram(wav_file):
+# Plot spectrogram of input audio file
+def plot_spectrogram(wav_file):
     try:
-        sample_rate, samples = wavfile.read(wav_file);
+        data, sr =librosa.load(wav_file);
         print('Success reading wav file')
     except:
         print('Error reading wav file.');
 
-    sample1 = [];
-    sample2 = [];
-    for vals in samples:
-        sample1.append(vals[0]);
-        sample2.append(vals[1]);
+    # Get short term Fourier transform and amplitudes
+    X = librosa.stft(data);
+    Xdb = librosa.amplitude_to_db(abs(X));
 
-    plt.title("Spectrogram of " + wav_file)
-    plt.subplot(221);
-    plt.plot(sample1);
-    plt.xlabel('Sample');
-    plt.ylabel('Amplitude');
+    # Plot spectrogram
+    plt.figure(figsize=(14,5));
+    display.specshow(Xdb, sr=sr, x_axis='time', y_axis='hz');
+    plt.colorbar();
+    plt.show();
 
-    plt.subplot(223);
-    plt.specgram(sample1, Fs=sample_rate);
-    plt.xlabel('Time');
-    plt.ylabel('Frequency');
 
-    plt.subplot(222);
-    plt.plot(sample2);
-    plt.xlabel('Sample');
-    plt.ylabel('Amplitude');
+def plot_mfccs(wav_file):
+    data, sr = librosa.load(wav_file);
+    mfcc = calculate_mfccs(data, sr);
 
-    plt.subplot(224);
-    plt.specgram(sample2, Fs=sample_rate);
-    plt.xlabel('Time');
-    plt.ylabel('Frequency');
-
-    plt.show()
+    plt.figure(figsize=(14,5));
+    display.specshow(mfcc, x_axis='time');
+    plt.colorbar();
+    plt.title('MFCCs for ' + wav_file);
+    plt.tight_layout();
+    plt.show();
