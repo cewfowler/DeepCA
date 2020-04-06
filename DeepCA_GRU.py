@@ -9,7 +9,7 @@ import numpy as np;
 import tensorflow as tf;
 
 from keras.models import Sequential;
-from keras.layers import Dense, GRU, Reshape;
+from keras.layers import Dense, Flatten, GRU, Reshape, Bidirectional;
 #from keras.utils import to_categorical;
 
 """
@@ -25,52 +25,35 @@ relu_clip = 20;
 
 # Number of connections at each layer
 batch_size = 64;
-n_input = 256;
-n_hidden = [2048, 1024, 512, 256, 256, 512];
+n_input = 8000;
+n_hidden = [2048, 1024, 512, 128, 128];
 n_output = 256;
 
-n_epochs = 100;
+n_epochs = 1;
 
 
 def create_model():
-    """
-    tf.keras.backend.clear_session();
-    config_proto = tf.ConfigProto()
-    off = rewriter_config_pb2.RewriterConfig.OFF
-    config_proto.graph_options.rewrite_options.arithmetic_optimization = off
-    session = tf.Session(config=config_proto)
-    set_session(session)
-    """
-
-    trainX = np.ones((2048, 360, 3));
-    trainY = np.ones((2048, 256));
-    # to_categorical -> converts class vector to binary class matrix, for use
-    # with categorical_crossentropy loss function
-    #trainY = to_categorical(trainY, num_classes=n_output);
 
     model = Sequential();
 
     # Add dense layers (first 3 layers)
     # TODO: figure out input dimensions to model
-    model.add(Dense(n_hidden[0], input_shape=(batch_size, n_input), activation='relu'));
+    model.add(Dense(n_hidden[0], input_shape=(n_input, batch_size), activation='relu'));
     model.add(Dense(n_hidden[1], activation='relu'));
     model.add(Dense(n_hidden[2], activation='relu'));
 
-    # TODO: figure out how to properly reshape
-    model.add(Reshape((-1, n_hidden[3])));
-
     # Add recurrent GRU layers (layers 4 and 5)
-    model.add(GRU(n_hidden[3], \
-                  activation='tanh', \
-                  recurrent_activation='sigmoid', \
-                  return_sequences=True));
-    #model.add(Reshape((-1, n_hidden[4])));
-    model.add(GRU(n_hidden[4], \
-                  activation='tanh', \
-                  recurrent_activation='sigmoid'));
+    model.add(Bidirectional(GRU(n_hidden[3], \
+                                activation='tanh', \
+                                recurrent_activation='sigmoid', \
+                                return_sequences=True)));
+    model.add(Bidirectional(GRU(n_hidden[4], \
+                                activation='tanh', \
+                                recurrent_activation='sigmoid',
+                                return_sequences=True)));
 
-    # Add another dense layer
-    model.add(Dense(n_hidden[5], activation='relu'));
+    # Flatten the output from GRU layers
+    model.add(Flatten());
 
     # Add output layer
     model.add(Dense(n_output, activation='softmax'));
@@ -89,14 +72,11 @@ def create_model():
     with open("model.json", "w") as json_file:
         json_file.write(model_json);
 
-    # Fit model to input, output
-    history = model.fit(trainX, trainY, epochs=n_epochs)
-
-    # Save model weights
-    model.save_weights("model.h5");
+    model.summary();
 
 
 def main():
+    create_model();
     print('Main');
 
 
