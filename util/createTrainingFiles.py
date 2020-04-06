@@ -44,22 +44,27 @@ def extractData(file_to_read, file_to_write):
 
 
 # Splices a .wav file into smaller wav files using timestamps
-# TODO: should spliced files be resampled to 8k?
+# TODO: should spliced files be resampled to 16k?
 def splice_wav(dir_to_read, dir_to_write, file_to_splice, ts):
     i = 1;
     base_name = os.path.splitext(file_to_splice)[0];
     audio = AudioSegment.from_wav(dir_to_read + '/' + base_name + '.wav');
 
+    # Create directory for current audio file splicing
+    if (not os.path.exists(dir_to_write + '/' + base_name)):
+        os.makedirs(dir_to_write + '/' + base_name);
+    folder = dir_to_write + '/' + base_name;
+
     # For each of the time stamps, get corresponding audio and save as new file
     for t in ts:
         t1 = t[0] * 1000;
         t2 = t[1] * 1000;
-        print('Writing ' + dir_to_write + '/' + base_name + '_' + str(i) + '.wav');
+        print('Writing ' + folder + '/' + base_name + '_' + str(i) + '.wav');
 
         newAudio = audio[t1:t2];
-        #newAudio = newAudio.set_frame_rate(8000);
+        newAudio = newAudio.set_frame_rate(16000);
 
-        newAudio.export(dir_to_write + '/' + base_name + '_' + str(i) + '.wav', format="wav");
+        newAudio.export(folder + '/' + base_name + '_' + str(i) + '.wav', format="wav");
         i = i + 1;
 
 

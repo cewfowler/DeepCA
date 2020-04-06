@@ -10,6 +10,7 @@ import tensorflow as tf;
 
 from keras.models import Sequential;
 from keras.layers import Dense, GRU, Reshape;
+#from keras.utils import to_categorical;
 
 """
 import tensorflow.compat.v1 as tf;
@@ -23,15 +24,12 @@ n_input = 3;
 relu_clip = 20;
 
 # Number of connections at each layer
-n_hidden = [2048, 2048, 2048, 512, 512, 2048, 256];
+batch_size = 64;
+n_input = 256;
+n_hidden = [2048, 1024, 512, 256, 256, 512];
+n_output = 256;
 
-batch_size = 128;
-learning_rate = 0.001;
-
-training_steps = 10000;
 n_epochs = 100;
-
-n_output = 5;
 
 
 def create_model():
@@ -44,38 +42,57 @@ def create_model():
     set_session(session)
     """
 
-    x = np.ones((2048, 360, 3));
-    y = np.ones((2048, 256));
+    trainX = np.ones((2048, 360, 3));
+    trainY = np.ones((2048, 256));
+    # to_categorical -> converts class vector to binary class matrix, for use
+    # with categorical_crossentropy loss function
+    #trainY = to_categorical(trainY, num_classes=n_output);
 
     model = Sequential();
 
     # Add dense layers (first 3 layers)
-    model.add(Dense(n_hidden[0], activation='relu'));
+    # TODO: figure out input dimensions to model
+    model.add(Dense(n_hidden[0], input_shape=(batch_size, n_input), activation='relu'));
     model.add(Dense(n_hidden[1], activation='relu'));
     model.add(Dense(n_hidden[2], activation='relu'));
 
+    # TODO: figure out how to properly reshape
     model.add(Reshape((-1, n_hidden[3])));
 
     # Add recurrent GRU layers (layers 4 and 5)
-    model.add(GRU(n_hidden[3], activation='tanh', recurrent_activation='sigmoid'));
-    model.add(Reshape((-1, n_hidden[4])));
-
-    model.add(GRU(n_hidden[4], activation='tanh', recurrent_activation='sigmoid'));
+    model.add(GRU(n_hidden[3], \
+                  activation='tanh', \
+                  recurrent_activation='sigmoid', \
+                  return_sequences=True));
+    #model.add(Reshape((-1, n_hidden[4])));
+    model.add(GRU(n_hidden[4], \
+                  activation='tanh', \
+                  recurrent_activation='sigmoid'));
 
     # Add another dense layer
-    model.add(Dense(n_hidden[5], input_dim=n_hidden[4], activation='relu'));
+    model.add(Dense(n_hidden[5], activation='relu'));
 
     # Add output layer
-    model.add(Dense(n_hidden[6], input_dim=n_hidden[5], activation='softmax'));
+    model.add(Dense(n_output, activation='softmax'));
 
     # Compile model
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy']);
+    # TODO: use categorical_crossentropy or sparse_categorical_crossentropy
+    # sparse_categorical_crossentropy does not require one hot encoding, ie.
+    # does not require to_categorical and saves significant memory if there
+    # is a large number of categories
+    model.compile(loss='sparse_categorical_crossentropy', \
+                  optimizer='adam', \
+                  metrics=['accuracy']);
 
+    # Save model as json file
     model_json = model.to_json();
     with open("model.json", "w") as json_file:
         json_file.write(model_json);
-    model.fit(x,y)
 
+    # Fit model to input, output
+    history = model.fit(trainX, trainY, epochs=n_epochs)
+
+    # Save model weights
     model.save_weights("model.h5");
 
 
