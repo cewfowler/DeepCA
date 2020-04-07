@@ -8,18 +8,13 @@ import json;
 import numpy as np;
 import tensorflow as tf;
 
-from keras.models import Sequential;
-from keras.layers import Dense, Flatten, GRU, Reshape, Bidirectional;
+from keras.models import Sequential, model_from_json;
+from keras.layers import Dense, Flatten, GRU, Reshape, Bidirectional, Activation;
+from keras.layers.normalization import BatchNormalization;
 #from keras.utils import to_categorical;
 
-"""
-import tensorflow.compat.v1 as tf;
-
-from tensorflow.core.protobuf import rewriter_config_pb2
-from tensorflow.compat.v1.keras.backend import set_session
-"""
-
 n_input = 3;
+learning_rate = 0.001;
 
 relu_clip = 20;
 
@@ -33,36 +28,50 @@ n_epochs = 1;
 
 
 def create_model():
-
     model = Sequential();
 
     # Add dense layers (first 3 layers)
-    # TODO: figure out input dimensions to model
-    model.add(Dense(n_hidden[0], input_shape=(n_input, batch_size), activation='relu'));
-    model.add(Dense(n_hidden[1], activation='relu'));
-    model.add(Dense(n_hidden[2], activation='relu'));
+    # Input must be described as input shape to work with recurrent layers
+    # TODO: figure out input dimensions to model, DeepSpeech uses spectrogram as input
+    model.add(Dense(n_hidden[0], input_shape=(n_input,1), use_bias=False));
+    model.add(BatchNormalization());
+    model.add(Activation("relu"));
 
+    model.add(Dense(n_hidden[1], use_bias=False));
+    model.add(BatchNormalization());
+    model.add(Activation("relu"));
+
+    model.add(Dense(n_hidden[2], use_bias=False));
+    model.add(BatchNormalization());
+    model.add(Activation("relu"));
+
+    # 3 dimensions of inputs to RNNs (LSTM only?):
+    # 1. batch size, 2. time steps, 3. input dimension
+    # https://www.researchgate.net/post/What_are_the_input_output_dimensions_when_training_a_simple_Recurrent_or_LSTM_neural_network
     # Add recurrent GRU layers (layers 4 and 5)
     model.add(Bidirectional(GRU(n_hidden[3], \
                                 activation='tanh', \
                                 recurrent_activation='sigmoid', \
                                 return_sequences=True)));
+    # TODO: need to add input_length? See keras docs
+    # https://keras.io/layers/recurrent/
     model.add(Bidirectional(GRU(n_hidden[4], \
                                 activation='tanh', \
                                 recurrent_activation='sigmoid',
                                 return_sequences=True)));
 
+    # TODO: add conv layer?
+
     # Flatten the output from GRU layers
     model.add(Flatten());
 
     # Add output layer
-    model.add(Dense(n_output, activation='softmax'));
+    model.add(Dense(n_output, use_bias=False));
+    model.add(BatchNormalization());
+    model.add(Activation("softmax"));
 
     # Compile model
-    # TODO: use categorical_crossentropy or sparse_categorical_crossentropy
-    # sparse_categorical_crossentropy does not require one hot encoding, ie.
-    # does not require to_categorical and saves significant memory if there
-    # is a large number of categories
+    # TODO: categorical_crossentropy vs sparse_categorical_crossentropy
     model.compile(loss='sparse_categorical_crossentropy', \
                   optimizer='adam', \
                   metrics=['accuracy']);
@@ -73,6 +82,17 @@ def create_model():
         json_file.write(model_json);
 
     model.summary();
+
+
+def train_model(inputs, labels, num_epochs):
+    with open("model.json", "r") as json_file:
+        model = model_from_json(json_file.read());
+
+    history = model.fit(inputs, labels, epochs=num_epochs);
+
+    model.save_weights("model.h5");
+
+    return history;
 
 
 def main():
