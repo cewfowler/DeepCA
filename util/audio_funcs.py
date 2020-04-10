@@ -31,7 +31,7 @@ def read_frames(wav_file, frame_duration_ms):
             wave.close(wav_file)
             break
 
-# Create batch set, probably can play around with output_types and padded_shapes.
+# Create batch set, probably can play around with output_types and padded_shapes. Make sure output_types args = padded_shapes args.
 def create_batch_set(wav_file, frame_duration_ms, batch_size):
     dataset = tf.data.Dataset.from_generator(read_frames, output_types=(tf.int32, tf.int32, tf.int32, tf.int32))
     dataset = dataset.padded_batch(batch_size, padded_shapes=([], [], [], []))
