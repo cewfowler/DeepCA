@@ -4,6 +4,7 @@ import numpy as np
 import io
 import os
 import librosa.feature
+import librosa
 
 # Default audio settings
 DEFAULT_RATE = 16000
@@ -12,8 +13,9 @@ DEFAULT_WIDTH = 2
 DEFAULT_FORMAT = (DEFAULT_RATE, DEFAULT_CHANNELS, DEFAULT_WIDTH)
 
 # Calculate the mfccs for input
-def calculate_mfccs(samples, sr):
-    mfcc = librosa.feature.mfcc(samples, sr=sr, n_mfcc=20);
+def calculate_mfccs(wavfile):
+    samples, sample_rate = librosa.load(wavfile)
+    mfcc = librosa.feature.mfcc(samples, sr=sample_rate, n_mfcc=20, dct_type=2);
     return mfcc;
 
 # Read the frames from wav file. Input frame duration.
@@ -31,7 +33,7 @@ def read_frames(wav_file, frame_duration_ms):
             wave.close(wav_file)
             break
 
-# Create batch set, probably can play around with output_types and padded_shapes. Make sure output_types args = padded_shapes args.
+# Create batch set. Make sure output_types = padded_shapes in terms of arguments.
 def create_batch_set(wav_file, frame_duration_ms, batch_size):
     dataset = tf.data.Dataset.from_generator(read_frames, output_types=(tf.int32, tf.int32, tf.int32, tf.int32))
     dataset = dataset.padded_batch(batch_size, padded_shapes=([], [], [], []))
