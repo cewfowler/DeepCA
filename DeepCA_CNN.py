@@ -5,41 +5,69 @@
 #----------------------------------------------------------------------------------------
 
 #Importing the basic libraries for use in model and data preprocessing
+import os
+import sys
 import numpy as np
-from random import randint
-from sklearn.preprocessing import MinMaxScaler
+import pandas as pd
+from random                  import randint
+from sklearn                 import metrics
+from sklearn.preprocessing   import MinMaxScaler
+from sklearn.preprocessing   import LabelEncoder
+from sklearn.model_selection import train_test_split
+from DeepCA_AudioAnalyzer    import AudioAnalyzer
 
 #Importing CNN model specific tools from the KERAS library
 #along with tensorflow itself
 import tensorflow as tf
-from tensorflow.keras import backend as K
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Activation
-from tensorflow.python.keras.layers import Input, Dense
+from tensorflow.keras            import backend as K
+from tensorflow.keras.models     import Sequential
+from tensorflow.keras.layers     import Activation, Dense, Input, Dropout, Flatten
+from tensorflow.keras.layers     import Convolution2D, Conv2D, MaxPooling2D, GlobalAveragePooling2D
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.metrics import categorical_crossentropy
-from tensorflow.keras.utils import plot_model
+from tensorflow.keras.metrics    import categorical_crossentropy
+from tensorflow.keras.utils      import plot_model, to_categorical #np_utils ???
 
 #Model Parameters
-batch_size    = 32
-epoch_size    = 10 #size for maximum accuracy
+num_rows      = 40
+num_columns   = 174
+num_channels  = 1
+kernel_size   = 2
+pool_size     = 2
+batch_size    = 256
+epoch_size    = 72 #size for maximum accuracy
+filter_size   = 16
 learning_rate = 0.001
+#----------------------#
 
-def create():
+#Constructor
+#--------------------------------#
+if __name__ == '__main__':
+    main()
+#--------------------------------#
+
+#Function to create our model on 3 parameters, a training set, a data set, and labels
+def create(num_labels):
+    
     #Creating Sequential Keras CNN
-    model = tf.keras.Sequential([
+    model = tf.keras.Sequential()
 
-        #Input parameter 1, dense input layer of taking 1 dimension, 16 perceptrons, RELU activation function
-        Dense(64, input_shape = (1,), activation = 'relu'),
+    #Constructing our CNN model using 2-dimensional convolutional layers, with 1 input, 3 deep layers, and 1 output layer
+    model.add(Conv2D(filters = filter_size, kernel_size = kernel_size, input_shape = (num_rows, num_columns, num_channels), activation = 'relu'))
+    model.add(MaxPooling2D(pool_size = pool_size))
+    model.add(Dropout(0,2))
 
-        #The rest of the deep layers
-        Dense(128, activation = 'relu'),
-        Dense(64, activation = 'relu'),
-        Dense(32, activation = 'relu'),
+    model.add(Conv2D(filters = filter_size*2, kernel_size = kernel_size, activation = 'relu'))
+    model.add(MaxPooling2D(pool_size = pool_size))
+    model.add(Dropout(0,2))
 
-        #Output function parameter using softmax function
-        Dense(16, activation = 'softmax')
-    ])
+    model.add(Conv2D(filters = filter_size*4, kernel_size = kernel_size, activation = 'relu'))
+    model.add(MaxPooling2D(pool_size = pool_size))
+    model.add(Dropout(0,2))
+
+    model.add(Conv2D(filters = filter_size*8, kernel_size = kernel_size, activation = 'relu'))
+    model.add(MaxPooling2D(pool_size = pool_size))
+
+    model.add(Dense(num_labels, activation = 'softmax'))
 
     #Flatten based on parameter, or simply ???
     #model.add(Flatten(input_shape = (28,28)))
@@ -48,7 +76,7 @@ def create():
     model.summary()
 
     #compiling the model using ADAM as optimizer, above learning rate of 0.001, and Sparse Categorical Crossentropy
-    model.compile(Adam(lr=.0001), loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
+    model.compile(Adam(lr = learning_rate), loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
 
     #save the data to CSV file
     model.to_csv('model_output.csv')
@@ -56,10 +84,12 @@ def create():
     #Prints the model object
     plot_model(model, show_layer_names = True, show_shapes = True, to_file='model_output.png')
 
+    return model
+
 #Trains the model on function call
-def train(data, labels, batch, epochs):
-    with open("model_output.csv", "r") as csv:
-        model = model.from_csv(csv.read())
+def train(model, data, labels, batch, epochs):
+    #with open("model_output.csv", "r") as csv:
+    #    model = model.from_csv(csv.read())
 
     batch = batch_size  #global batch
     epochs = epoch_size #global epoch
@@ -67,3 +97,55 @@ def train(data, labels, batch, epochs):
     fitted = model.fit(data, labels, batch, epochs,shuffle = True, verbose = 2) #Fits and trains the imported model
     
     return fitted
+
+def main():
+    # Set the path to the dataset, and turn it to .CSV file
+    fulldatasetpath = '...'
+    metadata = pd.read_csv(fulldatasetpath + '../.csv')
+
+    #Feature extraction list
+    features = []
+
+    # Iterate through each sound file and extract the features 
+    for index, row in metadata.iterrows():
+        
+        #Joins the each file name in a file_name tuple
+        file_name = os.path.join(os.path.abspath(fulldatasetpath),'fold'+str(row["fold"])+'/',str(row["slice_file_name"]))
+        
+        #Name labels and extract features of .WAV data with the feature extraction tool
+        class_label = row["class_name"]
+        data = AudioAnalyzer.feature_extraction(file_name)
+        
+        #Appends our extracted features to above array
+        features.append([data, class_label])
+
+    #Create Data Frame, and 2 numpy arrays to store data
+    feature_dataframe = pd.DataFrame(features, columns = ['Feature', 'Class_Label'])
+    feature_set = np.array(feature_dataframe.Feature.to_list())
+    label_set   = np.array(feature_dataframe.Class_Label.to_list())
+
+    #Label encoding for the CNN model
+    label_enc     = LabelEncoder()
+    enc_label_set = label_enc.fit_transform(label_set)
+
+    #Split our data for training
+    training_set, data_set, training_label_set, label_set = train_test_split(feature_set, enc_label_set, test_size = 0.2, random_state = 64)
+
+    #Reshaping the labels, training and data sets
+    training_set = training_set.reshape(training_set.shape[0], num_rows, num_columns, num_channels)
+    data_set     = data_set.reshape(data_set.shape[0], num_rows, num_columns, num_channels)
+    num_labels   = enc_label_set.shape[1]
+
+    #Create and train our model
+    model        = create(enc_label_set)
+    fitted_model = train(training_set, training_label_set, batch_size, epoch_size)
+
+    # Evaluating the model on the training and testing set
+    score = fitted_model.evaluate(training_set, training_label_set, verbose = 2)
+    print("Training Accuracy: ", score[1])
+
+    score = model.evaluate(data_set, label_set, verbose = 2)
+    print("Testing Accuracy: ", score[1])
+
+    #save the new model data to CSV file
+    fitted_model.to_csv('fitted_model_output.csv')
