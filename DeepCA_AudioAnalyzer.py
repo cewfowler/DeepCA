@@ -21,10 +21,10 @@ from wavfilehelper import WavFileHelper
 
 #Creates our audio analyzer class
 class AudioAnalyzer():
-    
+
     #Discrete data transformation using WavFileHelper
     def audio_transform(file_path):
-        
+
         #wav data array with file path assignment
         wav_data = []
         file_name = file_path
@@ -41,7 +41,7 @@ class AudioAnalyzer():
     # Convert into a Panda dataframe
     def convert_data(wav_data):
         data_frame = pd.DataFrame(wav_data, columns=['num_channels','sample_rate','bit_depth'])
-        
+
         return data_frame
 
     #Extracts and returns the scaled MFCCs of the .WAV file
@@ -50,7 +50,7 @@ class AudioAnalyzer():
         #Exception handling?
         #Takes the file, and extracts the sampling rate at 22.05 kHZ
         audio, sample_rate = librosa.load(file_name, res_type='kaiser_fast')
-        mfccs = librosa.feature.mfcc(y = audio, sr = sample_rate, n_mfcc = 40)
+        mfccs = librosa.feature.mfcc(y = audio, sr = sample_rate, n_mfcc = 20)
 
         #Scale the MFCC
         scaled_mfccs = np.mean(mfccs.T, axis = 0)
