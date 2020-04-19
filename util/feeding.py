@@ -1,8 +1,11 @@
 import numpy as np;
 import tensorflow as tf;
+import pandas as pd;
 from tensorflow.python.ops import gen_audio_ops as contrib_audio;
 import librosa.feature;
-import audio_funcs import read_frames
+import sys
+sys.path.insert(1, '..')
+from DeepCA_AudioAnalyzer import AudioAnalyzer;
 
 
 def calculate_mfccs(samples, sr):
