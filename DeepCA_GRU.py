@@ -7,11 +7,13 @@ import sys;
 import json;
 import numpy as np;
 import tensorflow as tf;
+import pandas as pd;
 
 from keras.models import Sequential, model_from_json;
 from keras.layers import Dense, Flatten, GRU, Reshape, Bidirectional, Activation;
 from keras.layers.normalization import BatchNormalization;
-#from keras.utils import to_categorical;
+from keras.utils import plot_model, to_categorical;
+from util.feeding import getCSVFeatures;
 
 n_input = 3;
 learning_rate = 0.001;
@@ -19,12 +21,14 @@ learning_rate = 0.001;
 relu_clip = 20;
 
 # Number of connections at each layer
-batch_size = 64;
 n_input = 8000;
 n_hidden = [2048, 1024, 512, 128, 128];
 n_output = 256;
 
-n_epochs = 1;
+batch_size = 256;
+n_epochs = 72;
+
+frame_duration_ms = 20;
 
 
 def create_model():
@@ -33,7 +37,7 @@ def create_model():
     # Add dense layers (first 3 layers)
     # Input must be described as input shape to work with recurrent layers
     # TODO: figure out input dimensions to model, DeepSpeech uses spectrogram as input
-    model.add(Dense(n_hidden[0], input_shape=(n_input,1), use_bias=False));
+    model.add(Dense(n_hidden[0], input_shape=(), use_bias=False));
     model.add(BatchNormalization());
     model.add(Activation("relu"));
 
@@ -82,13 +86,16 @@ def create_model():
         json_file.write(model_json);
 
     model.summary();
+    plot_model(model, show_layer_names = True, show_shapes = True, to_file='model_output.png')
+
+    return model;
 
 
 def train_model(inputs, labels, num_epochs):
     with open("model.json", "r") as json_file:
         model = model_from_json(json_file.read());
 
-    history = model.fit(inputs, labels, epochs=num_epochs);
+    history = model.fit(inputs, labels, batch_size, epochs=num_epochs, shuffle=True, verbose=2);
 
     model.save_weights("model.h5");
 
@@ -96,8 +103,26 @@ def train_model(inputs, labels, num_epochs):
 
 
 def main():
+    """features = getCSVFeatures();
+
+    #Create Data Frame, and 2 numpy arrays to store data
+    feature_dataframe = pd.DataFrame(features, columns = ['Feature', 'Class_Label']);
+    feature_set = np.array(feature_dataframe.Feature.to_list());
+    label_set   = np.array(feature_dataframe.Class_Label.to_list());
+
+    #Label encoding for the CNN model
+    label_enc     = LabelEncoder();
+    enc_label_set = label_enc.fit_transform(label_set);
+
+    #Split our data for training
+    training_set, data_set, training_label_set, label_set = train_test_split(feature_set, enc_label_set, test_size = 0.2, random_state = 64);
+
+    #Reshaping the labels, training and data sets
+    training_set = training_set.reshape(training_set.shape[0], num_rows, num_columns, num_channels);
+    data_set     = data_set.reshape(data_set.shape[0], num_rows, num_columns, num_channels);
+    num_labels   = enc_label_set.shape[1];"""
+
     create_model();
-    print('Main');
 
 
 if __name__ == '__main__':
