@@ -1,6 +1,7 @@
 from ann_visualizer.visualize import ann_viz;
 from keras.models import model_from_json;
 import argparse;
+import matplotlib.pyplot as plt;
 
 
 def visualize_model(model_file, weights_file):
@@ -12,6 +13,28 @@ def visualize_model(model_file, weights_file):
     model.load_weights(weights_file)
 
     ann_viz(model, title="DeepCA - Model Visualization");
+
+
+def visualize_accuracy(history):
+    print(history.history.keys());
+
+    # summarize history for accuracy
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show();
+    
+    # summarize history for loss
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
 
 
 def main():

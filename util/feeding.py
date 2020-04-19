@@ -1,3 +1,5 @@
+import os;
+
 import numpy as np;
 import tensorflow as tf;
 import pandas as pd;
@@ -39,7 +41,7 @@ def encodeLabels(label_file_path, chars_file_path='../language/chars.txt'):
 
 
 # Get features from CSV and audio file
-def getCSVFeatures(audio_file, csv_file):
+def getCSVFeatures(audio_dir, csv_file):
     meta = pd.read_csv(csv_file);
     features = [];
 
@@ -47,7 +49,7 @@ def getCSVFeatures(audio_file, csv_file):
     for index, row in metadata.iterrows():
 
         #Joins the each file name in a file_name tuple
-        file_name = os.path.join(os.path.abspath(fulldatasetpath),'fold'+str(row["fold"])+'/',str(row["slice_file_name"]))
+        file_name = os.path.join(audio_dir,'fold'+str(row["fold"])+'/',str(row["slice_file_name"]))
 
         #Name labels and extract features of .WAV data with the feature extraction tool
         class_label = row["class_name"]

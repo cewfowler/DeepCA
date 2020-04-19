@@ -13,7 +13,10 @@ from keras.models import Sequential, model_from_json;
 from keras.layers import Dense, Flatten, GRU, Reshape, Bidirectional, Activation;
 from keras.layers.normalization import BatchNormalization;
 from keras.utils import plot_model, to_categorical;
+from sklearn.preprocessing import LabelEncoder;
+from sklearn.model_selection import train_test_split;
 from util.feeding import getCSVFeatures;
+from util.visualize_model import visualize_accuracy;
 
 n_input = 3;
 learning_rate = 0.001;
@@ -91,7 +94,7 @@ def create_model():
     return model;
 
 
-def train_model(inputs, labels, num_epochs):
+def train_model(inputs, labels, num_epochs=n_epochs):
     with open("model.json", "r") as json_file:
         model = model_from_json(json_file.read());
 
@@ -103,7 +106,7 @@ def train_model(inputs, labels, num_epochs):
 
 
 def main():
-    """features = getCSVFeatures();
+    features = getCSVFeatures('./spliced_audio', './csv');
 
     #Create Data Frame, and 2 numpy arrays to store data
     feature_dataframe = pd.DataFrame(features, columns = ['Feature', 'Class_Label']);
@@ -120,9 +123,15 @@ def main():
     #Reshaping the labels, training and data sets
     training_set = training_set.reshape(training_set.shape[0], num_rows, num_columns, num_channels);
     data_set     = data_set.reshape(data_set.shape[0], num_rows, num_columns, num_channels);
-    num_labels   = enc_label_set.shape[1];"""
+    num_labels   = enc_label_set.shape[1];
 
     create_model();
+    hist = train(training_set, training_label_set);
+
+    # Evaluating the model on the training and testing set
+    visualize_accuracy(hist);
+
+    hist.to_csv('fitted_model_output.csv');
 
 
 if __name__ == '__main__':
