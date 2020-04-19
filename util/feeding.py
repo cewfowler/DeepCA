@@ -48,7 +48,7 @@ def getCSVFeatures(audio_file, csv_file):
 
         #Name labels and extract features of .WAV data with the feature extraction tool
         class_label = row["class_name"]
-        data = AudioAnalyzer.feature_extraction(file_name)
+        data = AudioAnalyzer.feature_extraction(audio_file);
 
         #Appends our extracted features to above array
         features.append([data, class_label]);
