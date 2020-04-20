@@ -5,6 +5,9 @@ class WavFileHelper():
     def read_file_properties(self, filename):
 
         wave_file = open(filename,"rb")
+
+        #Pulls the class label off the file
+        class_label = filename.split('/')[-2]
         
         riff = wave_file.read(12)
         fmt = wave_file.read(36)

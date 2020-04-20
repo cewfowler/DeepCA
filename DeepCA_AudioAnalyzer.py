@@ -21,42 +21,45 @@ from wavfilehelper import WavFileHelper
 
 #Creates our audio analyzer class
 class AudioAnalyzer():
-
+    
     #Discrete data transformation using WavFileHelper
-    def audio_transform(file_path):
+    def audio_transform(self):
 
+        #Base path to file
+        base_path = 'C:/Users/Vitaliy/Desktop/Desktop Folder/Engineering/Senior Design/Sample Dataset/'
+        
         #wav data array with file path assignment
         wav_data = []
-        file_name = file_path
 
         #Creates instance of wavfilehelper
         wavfilehelper = WavFileHelper()
 
+        #Opens testing set text file
+        txt_file = open("C:/Users/Vitaliy/Desktop/Desktop Folder/Engineering/Senior Design/Sample Dataset/testing_list.txt", "r")
+        
         #Transforms data, and adds it to our array
-        data = wavfilehelper.read_file_properties(file_name)
-        wav_data.append()
+        for file_path in txt_file:
 
-        return wav_data
+            file_name = os.path.join(base_path, file_path)
+            file_name = file_name.strip()
+            data = wavfilehelper.read_file_properties(file_name)
+            wav_data.append(data)
 
-    # Convert into a Panda dataframe
-    def convert_data(wav_data):
-        data_frame = pd.DataFrame(wav_data, columns=['num_channels','sample_rate','bit_depth'])
+        # Convert into a Panda dataframe and to csv
+        wav_df = pd.DataFrame(wav_data, columns=['num_channels','sample_rate','bit_depth','class_label'])
+        wav_df.to_csv('dataset.csv')
 
-        return data_frame
+        return wav_df
 
     #Extracts and returns the scaled MFCCs of the .WAV file
-    def feature_extraction(file_name):
+    def feature_extraction(self, file_name):
 
         #Exception handling?
         #Takes the file, and extracts the sampling rate at 22.05 kHZ
         audio, sample_rate = librosa.load(file_name, res_type='kaiser_fast')
-        mfccs = librosa.feature.mfcc(y = audio, sr = sample_rate, n_mfcc = 20)
+        mfccs = librosa.feature.mfcc(y = audio, sr = sample_rate, n_mfcc = 40)
 
         #Scale the MFCC
         scaled_mfccs = np.mean(mfccs.T, axis = 0)
 
         return scaled_mfccs
-
-    #-------------------------------------Reference for pulling file from OS path---------------------------------------#
-    #file_name = os.path.join(os.path.abspath(fulldatasetpath),'fold'+str(row["fold"])+'/',str(row["slice_file_name"]))
-    #-------------------------------------------------------------------------------------------------------------------#

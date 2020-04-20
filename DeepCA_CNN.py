@@ -99,21 +99,28 @@ def train(model, data, labels, batch, epochs):
     return fitted
 
 def main():
+
+    #Extract audio samples and create CSV
+    AudioAnalyzer.audio_transform()
+
     # Set the path to the dataset, and turn it to .CSV file
-    fulldatasetpath = '...'
-    metadata = pd.read_csv(fulldatasetpath + '../.csv')
+    fulldatasetpath = 'C:/Users/Vitaliy/Desktop/Desktop Folder/Engineering/Senior Design/Sample Dataset/'
+    metadata = pd.read_csv(fulldatasetpath + 'dataset.csv')
 
     #Feature extraction list
     features = []
 
-    # Iterate through each sound file and extract the features 
-    for index, row in metadata.iterrows():
+    #Opens testing set text file
+    txt_file = open("C:/Users/Vitaliy/Desktop/Desktop Folder/Engineering/Senior Design/Sample Dataset/testing_list.txt", "r")
         
-        #Joins the each file name in a file_name tuple
-        file_name = os.path.join(os.path.abspath(fulldatasetpath),'fold'+str(row["fold"])+'/',str(row["slice_file_name"]))
+    #Transforms data, and adds it to our array
+    for file_path in txt_file:
+
+        file_name = os.path.join(fulldatasetpath, file_path)
+        file_name = file_name.strip()
         
-        #Name labels and extract features of .WAV data with the feature extraction tool
-        class_label = row["class_name"]
+        #Pulls the class label off the file
+        class_label = file_name.split('/')[-2]
         data = AudioAnalyzer.feature_extraction(file_name)
         
         #Appends our extracted features to above array
